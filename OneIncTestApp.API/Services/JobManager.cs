@@ -1,0 +1,47 @@
+﻿using System.Collections.Concurrent;
+using OneIncTestApp.Models;
+
+namespace OneIncTestApp.Services
+{
+    public interface IJobManager
+    {
+        void StartJob(Job job);
+        void CancelJob(string connectionId);
+        bool TryGetJob(string connectionId, out Job job);
+    }
+
+    public class JobManager : IJobManager
+    {
+        private readonly ConcurrentDictionary<string, Job> _jobs = new();
+        private readonly ILogger<JobManager> _logger;
+
+        public JobManager(ILogger<JobManager> logger)
+        {
+            _logger = logger;
+        }
+
+        public void StartJob(Job job)
+        {
+            _jobs[job.ConnectionId] = job;
+            _logger.LogInformation($"Job Manager StartJob {job.Id}.");
+        }
+
+        public bool TryGetJob(string connectionId, out Job job)
+        {
+            job = _jobs[connectionId];
+           return job is null ? false : true;
+        }
+
+        public void CancelJob(string connectionId)
+        {
+            if (_jobs.TryRemove(connectionId, out var job))
+            {
+                job.CancellationTokenSource.Cancel();
+                job.CancellationTokenSource.Dispose();
+                _logger.LogInformation($"Job Manager CancelJob {job.Id}.");
+            }
+
+            _logger.LogInformation($"Any jobs are found for connection {connectionId}.");
+        }
+    }
+}
