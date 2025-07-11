@@ -33,3 +33,7 @@ Before you begin, ensure you have the following installed:
 ```bash
 git clone <repository-url>
 cd OneIncTestApp
+
+In Angular app, for local development, in processing.service.ts change:
+private apiUrl = 'https://localhost:<your_port>/api/processing';
+private hubUrl = 'https://localhost:<your_port>/api/processingHub';
