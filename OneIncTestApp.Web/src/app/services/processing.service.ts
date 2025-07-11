@@ -8,8 +8,8 @@ import { Observable, Subject } from 'rxjs';
 })
 export class ProcessingService {
     private hubConnection!: signalR.HubConnection;
-    private http = inject(HttpClient); // Use inject() for HttpClient
-    private apiUrl = 'https://localhost:7122/api/processing'; // Base API URL
+    private http = inject(HttpClient);
+    private apiUrl = 'http://localhost:8080/api/processing';
 
     private characterReceivedSubject = new Subject<string>();
     private processingCompleteSubject = new Subject<void>();
@@ -18,8 +18,9 @@ export class ProcessingService {
     totalCharacters = 0; // Total characters for progress calculation
 
     startConnection(): void {
+
         this.hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl('https://localhost:7122/processingHub') // SignalR Hub URL
+            .withUrl('http://localhost:8080/api/processingHub')
             .build();
 
         this.hubConnection
@@ -27,33 +28,30 @@ export class ProcessingService {
             .then(() => {
                 console.log('SignalR connected:', this.hubConnection.connectionId);
 
-                // Register event listeners once after connection is established
                 this.registerEventListeners();
             })
             .catch((err) => console.error('Error while starting SignalR connection:', err));
     }
 
-    // Register SignalR event listeners
     private registerEventListeners(): void {
-        // Listen for real-time updates
         this.hubConnection.on('ProcessingOutputLength', (length: number) => {
-            console.log('Processing Output Length:', length); // Debug log
+            console.log('Processing Output Length:', length);
             this.processingOutputLengthSubject.next(length);
         });
 
         this.hubConnection.on('ReceiveCharacter', (char: string) => {
-            console.log('Received a character:', char); // Debug log
-            this.characterReceivedSubject.next(char); // Push the character to the observable
+            console.log('Received a character:', char);
+            this.characterReceivedSubject.next(char);
         });
 
         this.hubConnection.on('ProcessingComplete', () => {
-            console.log('Processing complete'); // Debug log
-            this.processingCompleteSubject.next(); // Notify subscribers that processing is complete
+            console.log('Processing complete');
+            this.processingCompleteSubject.next();
         });
 
         this.hubConnection.on('ProcessingCancelled', () => {
-            console.log('Processing cancelled'); // Debug log
-            this.processingCompleteSubject.next(); // Notify subscribers about cancellation
+            console.log('Processing cancelled');
+            this.processingCompleteSubject.next();
         });
     }
 
@@ -63,13 +61,11 @@ export class ProcessingService {
             return;
         }
 
-        // Prepare the request payload
         const request = {
             input: input,
-            connectionId: this.hubConnection.connectionId, // SignalR connection ID
+            connectionId: this.hubConnection.connectionId,
         };
 
-        // Call the API endpoint to start processing
         this.http.post(`${this.apiUrl}/start`, request).subscribe({
             next: (response) => {
                 console.log('Processing started:', response);
@@ -81,7 +77,21 @@ export class ProcessingService {
     }
 
     cancelProcessing(): void {
-        this.hubConnection.invoke('CancelProcessing').catch((err) => console.error('Error while canceling processing:', err));
+        if (!this.hubConnection.connectionId) {
+            console.error('SignalR connection is not established.');
+            return;
+        }
+
+        const connectionId = this.hubConnection.connectionId;
+
+        this.http.post(`${this.apiUrl}/cancel`, { connectionId }).subscribe({
+            next: () => {
+                console.log('Processing cancelled successfully.');
+            },
+            error: (err) => {
+                console.error('Error while canceling processing:', err);
+            },
+        });
     }
 
     getCharacterReceivedObservable(): Observable<string> {

@@ -1,25 +1,22 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
+# Use the official .NET SDK image for building the app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["OneIncTestApp/OneIncTestApp.csproj", "OneIncTestApp/"]
-RUN dotnet restore "./OneIncTestApp/OneIncTestApp.csproj"
-COPY . .
-WORKDIR "/src/OneIncTestApp"
-RUN dotnet build "./OneIncTestApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./OneIncTestApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "OneIncTestApp.dll"]
+
+# Copy the project files
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy the rest of the app files and build the app
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Use the official .NET runtime image for running the app
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app/out .
+
+# Expose the port the app runs on
+EXPOSE 5000
+
+# Start the app
+ENTRYPOINT ["dotnet", "OneIncTestApp.API.dll"]

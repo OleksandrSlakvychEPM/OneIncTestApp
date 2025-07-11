@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.RateLimiting;
 using OneIncTestApp.Hub;
-using OneIncTestApp.Infra;
 using OneIncTestApp.Services;
 using System.Threading.RateLimiting;
+using OneIncTestApp.API.Services.Interfaces;
+using OneIncTestApp.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("http://localhost:4200", "http://localhost:8080")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -38,7 +39,6 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -48,7 +48,6 @@ app.UseCors();
 
 app.MapHub<ProcessingHub>("/processingHub");
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

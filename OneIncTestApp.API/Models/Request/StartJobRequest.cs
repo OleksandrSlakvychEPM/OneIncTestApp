@@ -2,7 +2,7 @@
 {
     public class StartJobRequest
     {
-        public string Input { get; set; }
-        public string ConnectionId { get; set; }
+        public string? Input { get; set; }
+        public string? ConnectionId { get; set; }
     }
 }

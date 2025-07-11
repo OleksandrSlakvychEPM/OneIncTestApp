@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using OneIncTestApp.Hub;
-using OneIncTestApp.Infra;
+using OneIncTestApp.Infrastructure;
 using OneIncTestApp.Models;
 
 namespace OneIncTestApp.Services

@@ -1,16 +1,11 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using OneIncTestApp.API.Services.Interfaces;
 using OneIncTestApp.Hub;
-using OneIncTestApp.Infra;
+using OneIncTestApp.Infrastructure;
 using OneIncTestApp.Models;
 
 namespace OneIncTestApp.Services
 {
-    public interface IJobService
-    {
-        Task StartProcessing(string input, string connectionId);
-        Task<bool> CancelProcessing(string connectionId);
-    }
-
     public class JobService : IJobService
     {
         private readonly IJobQueue _jobQueue;

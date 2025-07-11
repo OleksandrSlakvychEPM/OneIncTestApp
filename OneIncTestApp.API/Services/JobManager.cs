@@ -1,15 +1,9 @@
 ﻿using System.Collections.Concurrent;
+using OneIncTestApp.API.Services.Interfaces;
 using OneIncTestApp.Models;
 
 namespace OneIncTestApp.Services
 {
-    public interface IJobManager
-    {
-        void StartJob(Job job);
-        void CancelJob(string connectionId);
-        bool TryGetJob(string connectionId, out Job job);
-    }
-
     public class JobManager : IJobManager
     {
         private readonly ConcurrentDictionary<string, Job> _jobs = new();

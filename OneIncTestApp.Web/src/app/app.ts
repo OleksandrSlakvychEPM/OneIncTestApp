@@ -22,7 +22,7 @@ import { Subscription } from 'rxjs';
     MatToolbarModule,
     MatProgressBarModule
   ],
-  providers: [ProcessingService], // Provide the service here
+  providers: [ProcessingService],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
@@ -33,20 +33,16 @@ export class App implements OnInit, OnDestroy {
   totalCharacters = 0;
   progress = 0;
 
-  // Subscriptions for observables
   private characterReceivedSubscription!: Subscription;
   private processingCompleteSubscription!: Subscription;
   private processingOutputLengthSubscription!: Subscription;
 
-  // Use inject() for dependency injection
   private fb = inject(FormBuilder);
   private processingService = inject(ProcessingService);
 
   ngOnInit(): void {
-    // Initialize the SignalR connection
     this.processingService.startConnection();
 
-    // Initialize the form with validation
     this.processingForm = this.fb.group({
       inputText: ['', [Validators.required, Validators.minLength(1)]]
     });
@@ -54,9 +50,8 @@ export class App implements OnInit, OnDestroy {
     this.characterReceivedSubscription = this.processingService.getCharacterReceivedObservable().subscribe({
       next: (char: string) => {
         if (this.isProcessing) {
-          this.output += char; // Append received character to output
+          this.output += char;
 
-          // Update progress
           const receivedCharacters = this.output.length;
           this.progress = (receivedCharacters / this.totalCharacters) * 100;
         }
@@ -66,7 +61,7 @@ export class App implements OnInit, OnDestroy {
 
     this.processingCompleteSubscription = this.processingService.getProcessingCompleteObservable().subscribe({
       next: () => {
-        this.isProcessing = false; // Processing complete
+        this.isProcessing = false;
       },
       error: (err) => console.error('Error during processing completion:', err)
     });
@@ -89,14 +84,13 @@ export class App implements OnInit, OnDestroy {
     this.output = '';
     this.progress = 0;
 
-    // Start processing via the service
     this.processingService.processText(inputText);
   }
 
   cancelProcessing(): void {
     this.isProcessing = false;
-    this.progress = 0; // Reset progress
-    this.processingService.cancelProcessing(); // Call the service to cancel processing
+    this.progress = 0;
+    this.processingService.cancelProcessing();
   }
 
   ngOnDestroy(): void {

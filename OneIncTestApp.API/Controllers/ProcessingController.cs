@@ -1,22 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using OneIncTestApp.Hub;
+using OneIncTestApp.API.Models.Request;
+using OneIncTestApp.API.Services.Interfaces;
 using OneIncTestApp.Models.Request;
-using OneIncTestApp.Services;
 
 namespace OneIncTestApp.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class ProcessingController : ControllerBase
     {
-        private readonly IHubContext<ProcessingHub> _hubContext;
         private readonly IJobService _jobService;
         private readonly ILogger<ProcessingController> _logger;
 
-        public ProcessingController(IHubContext<ProcessingHub> hubContext, IJobService jobService, ILogger<ProcessingController> logger)
+        public ProcessingController(IJobService jobService, ILogger<ProcessingController> logger)
         {
-            _hubContext = hubContext;
             _jobService = jobService;
             _logger = logger;
         }
@@ -49,9 +46,14 @@ namespace OneIncTestApp.Controllers
         }
 
         [HttpPost("cancel")]
-        public async Task<IActionResult> CancelProcessing([FromBody] string connectionId)
+        public async Task<IActionResult> CancelProcessing([FromBody] CancelJobRequest request)
         {
-            var result = await _jobService.CancelProcessing(connectionId);
+            if (string.IsNullOrWhiteSpace(request.ConnectionId))
+            {
+                return BadRequest("Connection ID is required.");
+            }
+
+            var result = await _jobService.CancelProcessing(request.ConnectionId);
 
             return result ? Ok() : NotFound();
         }

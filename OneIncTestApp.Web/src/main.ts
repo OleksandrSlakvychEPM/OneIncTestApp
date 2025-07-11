@@ -6,6 +6,6 @@ import { App } from './app/app';
 bootstrapApplication(App, {
   providers: [
     provideHttpClient(),
-    BrowserAnimationsModule, // Required for Angular Material animations
+    BrowserAnimationsModule,
   ],
 }).catch((err) => console.error(err));

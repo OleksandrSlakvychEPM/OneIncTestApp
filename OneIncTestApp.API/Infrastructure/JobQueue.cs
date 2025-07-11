@@ -1,7 +1,7 @@
 ﻿using OneIncTestApp.Models;
 using System.Collections.Concurrent;
 
-namespace OneIncTestApp.Infra
+namespace OneIncTestApp.Infrastructure
 {
     public interface IJobQueue
     {
