@@ -10,6 +10,7 @@ export class ProcessingService {
     private hubConnection!: signalR.HubConnection;
     private http = inject(HttpClient);
     private apiUrl = 'http://localhost:8080/api/processing';
+    private hubUrl = 'http://localhost:8080/api/processingHub';
 
     private characterReceivedSubject = new Subject<string>();
     private processingCompleteSubject = new Subject<void>();
@@ -20,7 +21,7 @@ export class ProcessingService {
     startConnection(): void {
 
         this.hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl('http://localhost:8080/api/processingHub')
+            .withUrl(this.hubUrl)
             .build();
 
         this.hubConnection
