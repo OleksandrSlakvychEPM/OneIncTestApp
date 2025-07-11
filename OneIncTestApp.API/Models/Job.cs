@@ -4,7 +4,7 @@
     {
         public string Id { get; set; }
         public string Input { get; set; }
-        public string ConnectionId { get; set; } // SignalR connection ID
+        public string ConnectionId { get; set; }
         public CancellationTokenSource CancellationTokenSource { get; set; }
     }
 }

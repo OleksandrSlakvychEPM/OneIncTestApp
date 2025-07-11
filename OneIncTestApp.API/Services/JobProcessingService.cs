@@ -10,12 +10,18 @@ namespace OneIncTestApp.Services
         private readonly IJobQueue _jobQueue;
         private readonly IHubContext<ProcessingHub> _hubContext;
         private readonly ILogger<JobProcessingService> _logger;
+        private readonly Func<int, CancellationToken, Task> _delayFunc;
 
-        public JobProcessingService(IJobQueue jobQueue, IHubContext<ProcessingHub> hubContext, ILogger<JobProcessingService> logger)
+        public JobProcessingService(
+            IJobQueue jobQueue,
+            IHubContext<ProcessingHub> hubContext,
+            ILogger<JobProcessingService> logger,
+            Func<int, CancellationToken, Task> delayFunc = null)
         {
             _jobQueue = jobQueue;
             _hubContext = hubContext;
             _logger = logger;
+            _delayFunc = delayFunc ?? Task.Delay;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -26,15 +32,12 @@ namespace OneIncTestApp.Services
             {
                 try
                 {
-                    // Wait for a job to be added to the queue
                     await _jobQueue.WaitForJobAsync(stoppingToken);
 
-                    // Try to dequeue a job
                     if (_jobQueue.TryDequeue(out var job))
                     {
                         _logger.LogInformation($"Processing job {job.Id}...");
 
-                        // Process the job
                         await ProcessJobAsync(job, job.CancellationTokenSource.Token);
                     }
                 }
@@ -53,20 +56,16 @@ namespace OneIncTestApp.Services
         {
             try
             {
-                // Step 1: Count unique characters and their occurrences
                 var charCounts = job.Input
-                    .GroupBy(c => c) // Group characters by their value
-                    .OrderBy(g => g.Key) // Sort by character
-                    .Select(g => $"{g.Key}{g.Count()}"); // Format as "character + count"
+                    .GroupBy(c => c)
+                    .OrderBy(g => g.Key)
+                    .Select(g => $"{g.Key}{g.Count()}");
 
-                // Step 2: Join the counts into a single string
-                var countsString = string.Join("", charCounts); // e.g., " 1!1,1H1W1d1e1l3o2r1"
+                var countsString = string.Join("", charCounts);
 
-                // Step 3: Base64 encode the input string
-                var base64Encoded = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(job.Input)); // e.g., "SGVsbG8sIFdvcmxkIQ=="
+                var base64Encoded = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(job.Input));
 
-                // Step 4: Combine the counts string and Base64 encoded string
-                var result = $"{countsString}/{base64Encoded}"; // e.g., " 1!1,1H1W1d1e1l3o2r1/SGVsbG8sIFdvcmxkIQ=="
+                var result = $"{countsString}/{base64Encoded}";
 
                 await _hubContext.Clients.Client(job.ConnectionId).SendAsync("ProcessingOutputLength", result.Length, cancellationToken);
 
@@ -75,14 +74,12 @@ namespace OneIncTestApp.Services
                     if (cancellationToken.IsCancellationRequested)
                     {
                         _logger.LogInformation($"Job {job.Id} was cancelled.");
-                        await _hubContext.Clients.Client(job.ConnectionId).SendAsync("ProcessingCancelled");
+                        await _hubContext.Clients.Client(job.ConnectionId).SendAsync("ProcessingCancelled", cancellationToken);
                         break;
                     }
 
-                    // Simulate random delay (1-5 seconds)
-                    await Task.Delay(new Random().Next(1000, 5000), cancellationToken);
+                    await _delayFunc(new Random().Next(1000, 5000), cancellationToken);
 
-                    // Send character to the client via SignalR
                     await _hubContext.Clients.Client(job.ConnectionId).SendAsync("ReceiveCharacter", character, cancellationToken);
                 }
 

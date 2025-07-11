@@ -39,7 +39,6 @@ namespace OneIncTestApp.Services
 
             _logger.LogInformation($"Job {jobId} added to the queue for client {connectionId}.");
 
-            // Notify the client that the job has started
             await _hubContext.Clients.Client(connectionId).SendAsync("JobStarted", jobId);
         }
 

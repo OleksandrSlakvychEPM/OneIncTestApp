@@ -22,8 +22,7 @@ namespace OneIncTestApp.Services
 
         public bool TryGetJob(string connectionId, out Job job)
         {
-            job = _jobs[connectionId];
-           return job is null ? false : true;
+            return _jobs.TryGetValue(connectionId, out job);
         }
 
         public void CancelJob(string connectionId)

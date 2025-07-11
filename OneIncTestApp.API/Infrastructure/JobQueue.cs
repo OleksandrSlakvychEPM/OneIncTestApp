@@ -24,7 +24,7 @@ namespace OneIncTestApp.Infrastructure
             }
 
             _jobs.Enqueue(job);
-            _signal.Release(); // Notify the worker
+            _signal.Release();
         }
 
         public bool TryDequeue(out Job? job)
