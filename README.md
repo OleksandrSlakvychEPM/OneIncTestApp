@@ -50,7 +50,8 @@ docker compose up
 ```
 
 #### **4. Open and use app**
-``` Open application wirh url - http://localhost:8080/
+``` 
+Open application wirh url - http://localhost:8080/
 Credentials 
 Username: ineincadmusr
 Password: w66cbZxkwDjwjgHBcZd3
