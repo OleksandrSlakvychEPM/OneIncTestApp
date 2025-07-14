@@ -33,21 +33,24 @@ Before you begin, ensure you have the following installed:
 ```bash
 git clone <repository-url>
 cd OneIncTestApp
+```
 
 #### **2. Build Angular App**
 ```bash
 cd OneIncTestApp\OneIncTestApp.Web
 npm install
 npm run build --omit=dev
+```
 
 #### **3. Build and Run Docker containers**
 ```bash
 cd OneIncTestApp
 docker compose build
 docker compose up
+```
 
 #### **4. Open and use app**
--- Open application wirh url - http://localhost:8080/
+``` Open application wirh url - http://localhost:8080/ ```
 
 In Angular app, for local development, in processing.service.ts change:
 private apiUrl = 'https://localhost:<your_port>/api/processing';
