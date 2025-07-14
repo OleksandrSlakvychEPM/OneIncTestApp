@@ -35,5 +35,5 @@ git clone <repository-url>
 cd OneIncTestApp
 
 In Angular app, for local development, in processing.service.ts change:
-private apiUrl = 'https://localhost:<your_port>/api/processing';
-private hubUrl = 'https://localhost:<your_port>/api/processingHub';
+private apiUrl = 'https://localhost:<your_port>/processing';
+private hubUrl = 'https://localhost:<your_port>/processingHub';

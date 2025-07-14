@@ -9,8 +9,8 @@ import { Observable, Subject } from 'rxjs';
 export class ProcessingService {
     private hubConnection!: signalR.HubConnection;
     private http = inject(HttpClient);
-    private apiUrl = 'https://localhost:7122/processing';
-    private hubUrl = 'https://localhost:7122/processingHub';
+    private apiUrl = 'http://localhost:8080/api/processing';
+    private hubUrl = 'http://localhost:8080/api/processingHub';
 
     private characterReceivedSubject = new Subject<string>();
     private processingCompleteSubject = new Subject<void>();
@@ -22,7 +22,6 @@ export class ProcessingService {
 
         this.hubConnection = new signalR.HubConnectionBuilder()
             .withUrl(this.hubUrl)
-            .withAutomaticReconnect()
             .build();
 
         this.hubConnection
