@@ -21,7 +21,7 @@ namespace OneIncTestApp.Services
             _logger = logger;
         }
 
-        public async Task StartProcessing(string input, string connectionId)
+        public async Task StartProcessing(string input, string connectionId, string tabId)
         {
             var jobId = Guid.NewGuid().ToString();
             var cts = new CancellationTokenSource();
@@ -31,23 +31,24 @@ namespace OneIncTestApp.Services
                 Id = jobId,
                 Input = input,
                 ConnectionId = connectionId,
+                TabId = tabId,
                 CancellationTokenSource = cts
             };
 
             _jobManager.StartJob(job);
             _jobQueue.Enqueue(job);
 
-            _logger.LogInformation($"Job {jobId} added to the queue for client {connectionId}.");
+            _logger.LogInformation($"Job {jobId} added to the queue for client {connectionId} and tab {tabId}.");
 
             await _hubContext.Clients.Client(connectionId).SendAsync("JobStarted", jobId);
         }
 
-        public async Task<bool> CancelProcessing(string connectionId)
+        public async Task<bool> CancelProcessing(string connectionId, string tabId)
         {
-            if (!_jobManager.TryGetJob(connectionId, out var job)) return false;
-            _jobManager.CancelJob(connectionId);
+            if (!_jobManager.TryGetJob(connectionId, tabId, out var job)) return false;
+            _jobManager.CancelJob(connectionId, tabId);
             await _hubContext.Clients.Client(connectionId).SendAsync("ProcessingCancelled");
-            _logger.LogInformation($"Client {connectionId} requested cancellation for job.");
+            _logger.LogInformation($"Client {connectionId} requested cancellation for job on tab {tabId}.");
 
             return true;
         }

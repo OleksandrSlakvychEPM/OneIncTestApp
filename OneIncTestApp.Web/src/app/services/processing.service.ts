@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as signalR from '@microsoft/signalr';
 import { Observable, Subject } from 'rxjs';
+import { TabIdentifierService } from './tabidentifier.service';
 
 @Injectable({
     providedIn: 'root',
@@ -9,14 +10,20 @@ import { Observable, Subject } from 'rxjs';
 export class ProcessingService {
     private hubConnection!: signalR.HubConnection;
     private http = inject(HttpClient);
-    private apiUrl = 'http://localhost:8080/api/processing';
-    private hubUrl = 'http://localhost:8080/api/processingHub';
+    private apiUrl = 'https://localhost:7122/processing';
+    private hubUrl = 'https://localhost:7122/processingHub';
+
+    private tabId: string;
 
     private characterReceivedSubject = new Subject<string>();
     private processingCompleteSubject = new Subject<void>();
     private processingOutputLengthSubject = new Subject<number>();
 
     totalCharacters = 0; // Total characters for progress calculation
+
+    constructor(private tabIdentifierService: TabIdentifierService) {
+        this.tabId = this.tabIdentifierService.getTabId();
+    }
 
     startConnection(retries: number = 3, delayMs: number = 2000): void {
 
@@ -69,6 +76,7 @@ export class ProcessingService {
         const request = {
             input: input,
             connectionId: this.hubConnection.connectionId,
+            tabId: this.tabId,
         };
 
         this.http.post(`${this.apiUrl}/start`, request).subscribe({
@@ -88,9 +96,12 @@ export class ProcessingService {
             return;
         }
 
-        const connectionId = this.hubConnection.connectionId;
+        const request = {
+            connectionId: this.hubConnection.connectionId,
+            tabId: this.tabId,
+        };
 
-        this.http.post(`${this.apiUrl}/cancel`, { connectionId }).subscribe({
+        this.http.post(`${this.apiUrl}/cancel`, request).subscribe({
             next: () => {
                 console.log('Processing cancelled successfully.');
             },
