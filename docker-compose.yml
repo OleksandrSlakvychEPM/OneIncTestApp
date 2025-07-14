@@ -13,13 +13,13 @@ services:
     networks:
       - app-network
 
-  ui:
-    build:
-      context: ./OneIncTestApp.Web
-      dockerfile: Dockerfile
-    container_name: ui-container
-    ports:
-      - "4200:80"
+  build-ui:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - ./OneIncTestApp.Web:/app
+    command: >
+      sh -c "npm install && npm run build --omit=dev"
     networks:
       - app-network
 
@@ -34,7 +34,7 @@ services:
       - "8080:80"
     depends_on:
       - api
-      - ui
+      - build-ui
     networks:
       - app-network
 

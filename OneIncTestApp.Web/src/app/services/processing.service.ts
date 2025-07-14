@@ -10,8 +10,8 @@ import { TabIdentifierService } from './tabidentifier.service';
 export class ProcessingService {
     private hubConnection!: signalR.HubConnection;
     private http = inject(HttpClient);
-    private apiUrl = 'https://localhost:7122/processing';
-    private hubUrl = 'https://localhost:7122/processingHub';
+    private apiUrl = 'http://localhost:8080/api/processing';
+    private hubUrl = 'http://localhost:8080/api/processingHub';
 
     private tabId: string;
 
