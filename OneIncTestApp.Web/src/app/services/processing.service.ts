@@ -29,6 +29,7 @@ export class ProcessingService {
 
         this.hubConnection = new signalR.HubConnectionBuilder()
             .withUrl(this.hubUrl)
+            .withAutomaticReconnect()
             .build();
 
         this.hubConnection
