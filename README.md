@@ -22,7 +22,7 @@ This repository contains the **OneIncTestApp**, a project designed to process jo
 Before you begin, ensure you have the following installed:
 1. **Docker**: [Install Docker](https://www.docker.com/)
 2. **Docker Compose**: [Install Docker Compose](https://docs.docker.com/compose/install/)
-3. **Node.js**: [Install Node.js](https://nodejs.org/) (for Angular development)
+3. **Node.js**: [Install Node.js](https://nodejs.org/) (Angular CLI requires a minimum Node.js version of v20.19 or v22.12) (for Angular development)
 4. **.NET SDK**: [Install .NET SDK](https://dotnet.microsoft.com/) (for API development)
 
 ---
