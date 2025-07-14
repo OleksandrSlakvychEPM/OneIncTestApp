@@ -33,7 +33,7 @@ namespace OneIncTestApp.Controllers
 
             try
             {
-                await _jobService.StartProcessing(input: request.Input, connectionId: request.ConnectionId);
+                await _jobService.StartProcessing(input: request.Input, connectionId: request.ConnectionId, tabId: request.TabId);
 
                 _logger.LogInformation($"Processing job started for connection {request.ConnectionId}.");
                 return Ok(new { Message = "Job started successfully." });
@@ -53,7 +53,7 @@ namespace OneIncTestApp.Controllers
                 return BadRequest("Connection ID is required.");
             }
 
-            var result = await _jobService.CancelProcessing(request.ConnectionId);
+            var result = await _jobService.CancelProcessing(request.ConnectionId, request.TabId);
 
             return result ? Ok() : NotFound();
         }

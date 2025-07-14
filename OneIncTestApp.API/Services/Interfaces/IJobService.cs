@@ -2,7 +2,7 @@
 {
     public interface IJobService
     {
-        Task StartProcessing(string input, string connectionId);
-        Task<bool> CancelProcessing(string connectionId);
+        Task StartProcessing(string input, string connectionId, string tabId);
+        Task<bool> CancelProcessing(string connectionId, string tabId);
     }
 }

@@ -41,7 +41,7 @@ export class App implements OnInit, OnDestroy {
   private processingService = inject(ProcessingService);
 
   ngOnInit(): void {
-    this.processingService.startConnection();
+    this.processingService.startConnection(2, 1000);
 
     this.processingForm = this.fb.group({
       inputText: ['', [Validators.required, Validators.minLength(1)]]
@@ -103,5 +103,6 @@ export class App implements OnInit, OnDestroy {
     if (this.processingOutputLengthSubscription) {
       this.processingOutputLengthSubscription.unsubscribe();
     }
+    this.processingService.stopConnection();
   }
 }

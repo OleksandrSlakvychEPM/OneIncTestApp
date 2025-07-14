@@ -13,6 +13,7 @@ namespace OneIncTestApp.Infrastructure
 
     public class JobQueue : IJobQueue
     {
+        private readonly int _maxQueueSize = 1000;
         private readonly ConcurrentQueue<Job> _jobs = new();
         private readonly SemaphoreSlim _signal = new(0);
 
@@ -21,6 +22,11 @@ namespace OneIncTestApp.Infrastructure
             if (job is null)
             {
                 throw new ArgumentNullException(nameof(job));
+            }
+
+            if (_jobs.Count >= _maxQueueSize)
+            {
+                throw new InvalidOperationException("Job queue is full.");
             }
 
             _jobs.Enqueue(job);

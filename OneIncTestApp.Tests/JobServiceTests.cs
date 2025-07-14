@@ -6,6 +6,7 @@ using OneIncTestApp.Models;
 using OneIncTestApp.API.Services.Interfaces;
 using OneIncTestApp.Hub;
 using OneIncTestApp.Infrastructure;
+using Xunit;
 
 public class JobServiceTests
 {
@@ -36,27 +37,19 @@ public class JobServiceTests
     {
         // Arrange
         var connectionId = "connection1";
+        var tabId = "tab1";
         var input = "Hello";
 
-        var jobQueueMock = new Mock<IJobQueue>();
-        var jobManagerMock = new Mock<IJobManager>();
-        var hubContextMock = new Mock<IHubContext<ProcessingHub>>();
-        var clientProxyMock = new Mock<ISingleClientProxy>();
-        var loggerMock = new Mock<ILogger<JobService>>();
-
-        // Mock SignalR behavior
-        var clientsMock = new Mock<IHubClients>();
-        clientsMock.Setup(c => c.Client(It.IsAny<string>())).Returns(clientProxyMock.Object);
-        hubContextMock.Setup(h => h.Clients).Returns(clientsMock.Object);
-
-        var jobService = new JobService(jobQueueMock.Object, jobManagerMock.Object, hubContextMock.Object, loggerMock.Object);
-
         // Act
-        await jobService.StartProcessing(input, connectionId);
+        await _jobService.StartProcessing(input, connectionId, tabId);
 
         // Assert
-        jobQueueMock.Verify(q => q.Enqueue(It.IsAny<Job>()), Times.Once);
-        clientProxyMock.Verify(c => c.SendCoreAsync(
+        _jobQueueMock.Verify(q => q.Enqueue(It.Is<Job>(job =>
+            job.ConnectionId == connectionId &&
+            job.TabId == tabId &&
+            job.Input == input)), Times.Once);
+
+        _clientProxyMock.Verify(c => c.SendCoreAsync(
             "JobStarted",
             It.Is<object[]>(args => args.Length == 1 && args[0] is string),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -67,37 +60,50 @@ public class JobServiceTests
     {
         // Arrange
         var connectionId = "connection1";
-        var jobQueueMock = new Mock<IJobQueue>();
-        var jobManagerMock = new Mock<IJobManager>();
-        var hubContextMock = new Mock<IHubContext<ProcessingHub>>();
-        var clientProxyMock = new Mock<ISingleClientProxy>();
-        var loggerMock = new Mock<ILogger<JobService>>();
-
-        // Mock SignalR behavior
-        var clientsMock = new Mock<IHubClients>();
-        clientsMock.Setup(c => c.Client(It.IsAny<string>())).Returns(clientProxyMock.Object);
-        hubContextMock.Setup(h => h.Clients).Returns(clientsMock.Object);
-
-        var jobService = new JobService(jobQueueMock.Object, jobManagerMock.Object, hubContextMock.Object, loggerMock.Object);
+        var tabId = "tab1";
 
         var job = new Job
         {
             Id = "job1",
             ConnectionId = connectionId,
+            TabId = tabId,
             Input = "Hello",
             CancellationTokenSource = new CancellationTokenSource()
         };
 
-        jobManagerMock.Setup(m => m.TryGetJob(connectionId, out job)).Returns(true);
+        _jobManagerMock.Setup(m => m.TryGetJob(connectionId, tabId, out job)).Returns(true);
 
         // Act
-        var result = await jobService.CancelProcessing(connectionId);
+        var result = await _jobService.CancelProcessing(connectionId, tabId);
 
         // Assert
         Assert.True(result);
-        clientProxyMock.Verify(c => c.SendCoreAsync(
+        _jobManagerMock.Verify(m => m.CancelJob(connectionId, tabId), Times.Once);
+
+        _clientProxyMock.Verify(c => c.SendCoreAsync(
             "ProcessingCancelled",
             It.Is<object[]>(args => args.Length == 0),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CancelProcessing_ShouldReturnFalseIfJobDoesNotExist()
+    {
+        // Arrange
+        var connectionId = "connection1";
+        var tabId = "tab1";
+
+        Job job = null;
+        _jobManagerMock.Setup(m => m.TryGetJob(connectionId, tabId, out job)).Returns(false);
+
+        // Act
+        var result = await _jobService.CancelProcessing(connectionId, tabId);
+
+        // Assert
+        Assert.False(result);
+        _clientProxyMock.Verify(c => c.SendCoreAsync(
+            "ProcessingCancelled",
+            It.IsAny<object[]>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 }
