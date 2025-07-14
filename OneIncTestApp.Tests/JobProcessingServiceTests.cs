@@ -5,6 +5,8 @@ using OneIncTestApp.Services;
 using OneIncTestApp.Models;
 using OneIncTestApp.Hub;
 using OneIncTestApp.Infrastructure;
+using Microsoft.Extensions.Options;
+using OneIncTestApp.Options;
 
 public class JobProcessingServiceTests
 {
@@ -45,8 +47,14 @@ public class JobProcessingServiceTests
             .Returns(Task.CompletedTask);
 
         Task MockDelay(int milliseconds, CancellationToken token) => Task.CompletedTask;
+        var mockOptions = new Mock<IOptions<JobProcessingOptions>>();
+        mockOptions.Setup(o => o.Value).Returns(new JobProcessingOptions
+        {
+            MinDelayMilliseconds = 500,
+            MaxDelayMilliseconds = 1000
+        });
 
-        var service = new JobProcessingService(_jobQueueMock.Object, _hubContextMock.Object, _loggerMock.Object, MockDelay);
+        var service = new JobProcessingService(_jobQueueMock.Object, _hubContextMock.Object, _loggerMock.Object, mockOptions.Object, MockDelay);
 
         var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.CancelAfter(2000);
@@ -87,7 +95,14 @@ public class JobProcessingServiceTests
         _jobQueueMock.Setup(q => q.WaitForJobAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var service = new JobProcessingService(_jobQueueMock.Object, _hubContextMock.Object, _loggerMock.Object);
+        var mockOptions = new Mock<IOptions<JobProcessingOptions>>();
+        mockOptions.Setup(o => o.Value).Returns(new JobProcessingOptions
+        {
+            MinDelayMilliseconds = 500,
+            MaxDelayMilliseconds = 1000
+        });
+
+        var service = new JobProcessingService(_jobQueueMock.Object, _hubContextMock.Object, _loggerMock.Object, mockOptions.Object);
 
         var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.CancelAfter(1000);

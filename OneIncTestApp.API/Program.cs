@@ -4,6 +4,7 @@ using OneIncTestApp.Services;
 using System.Threading.RateLimiting;
 using OneIncTestApp.API.Services.Interfaces;
 using OneIncTestApp.Infrastructure;
+using OneIncTestApp.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,13 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
+
+builder.Services.Configure<JobProcessingOptions>(
+    builder.Configuration.GetSection("JobProcessingOptions")
+);
+builder.Services.Configure<JobQueueOptions>(
+    builder.Configuration.GetSection("JobQueueOptions")
+);
 
 builder.Services.AddSingleton<IJobQueue, JobQueue>();
 builder.Services.AddSingleton<IJobManager, JobManager>();

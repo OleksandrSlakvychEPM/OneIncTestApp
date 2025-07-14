@@ -9,7 +9,8 @@ import { Observable, Subject } from 'rxjs';
 export class ProcessingService {
     private hubConnection!: signalR.HubConnection;
     private http = inject(HttpClient);
-    private apiUrl = 'http://localhost:8080/api/processing';
+    private apiUrl = 'https://localhost:7122/processing';
+    private hubUrl = 'https://localhost:7122/processingHub';
 
     private characterReceivedSubject = new Subject<string>();
     private processingCompleteSubject = new Subject<void>();
@@ -17,20 +18,25 @@ export class ProcessingService {
 
     totalCharacters = 0; // Total characters for progress calculation
 
-    startConnection(): void {
+    startConnection(retries: number = 3, delayMs: number = 2000): void {
 
         this.hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl('http://localhost:8080/api/processingHub')
+            .withUrl(this.hubUrl)
+            .withAutomaticReconnect()
             .build();
 
         this.hubConnection
             .start()
             .then(() => {
                 console.log('SignalR connected:', this.hubConnection.connectionId);
-
                 this.registerEventListeners();
             })
-            .catch((err) => console.error('Error while starting SignalR connection:', err));
+            .catch((err) => {
+                console.error('Error while starting SignalR connection:', err);
+                if (retries > 0) {
+                    setTimeout(() => this.startConnection(retries - 1, delayMs), delayMs);
+                }
+            });
     }
 
     private registerEventListeners(): void {
@@ -72,6 +78,7 @@ export class ProcessingService {
             },
             error: (err) => {
                 console.error('Error while starting processing:', err);
+                this.characterReceivedSubject.error(err);
             },
         });
     }
@@ -92,6 +99,14 @@ export class ProcessingService {
                 console.error('Error while canceling processing:', err);
             },
         });
+    }
+
+    stopConnection(): void {
+        if (this.hubConnection) {
+            this.hubConnection.stop()
+                .then(() => console.log('SignalR connection stopped'))
+                .catch((err) => console.error('Error while stopping SignalR connection:', err));
+        }
     }
 
     getCharacterReceivedObservable(): Observable<string> {

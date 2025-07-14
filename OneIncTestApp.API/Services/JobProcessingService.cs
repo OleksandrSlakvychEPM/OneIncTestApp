@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using OneIncTestApp.Hub;
 using OneIncTestApp.Infrastructure;
 using OneIncTestApp.Models;
+using OneIncTestApp.Options;
 
 namespace OneIncTestApp.Services
 {
@@ -10,17 +12,20 @@ namespace OneIncTestApp.Services
         private readonly IJobQueue _jobQueue;
         private readonly IHubContext<ProcessingHub> _hubContext;
         private readonly ILogger<JobProcessingService> _logger;
+        private readonly JobProcessingOptions _options;
         private readonly Func<int, CancellationToken, Task> _delayFunc;
 
         public JobProcessingService(
             IJobQueue jobQueue,
             IHubContext<ProcessingHub> hubContext,
             ILogger<JobProcessingService> logger,
+            IOptions<JobProcessingOptions> options,
             Func<int, CancellationToken, Task> delayFunc = null)
         {
             _jobQueue = jobQueue;
             _hubContext = hubContext;
             _logger = logger;
+            _options = options.Value;
             _delayFunc = delayFunc ?? Task.Delay;
         }
 
@@ -78,7 +83,7 @@ namespace OneIncTestApp.Services
                         break;
                     }
 
-                    await _delayFunc(new Random().Next(1000, 5000), cancellationToken);
+                    await _delayFunc(new Random().Next(_options.MinDelayMilliseconds, _options.MaxDelayMilliseconds), cancellationToken);
 
                     await _hubContext.Clients.Client(job.ConnectionId).SendAsync("ReceiveCharacter", character, cancellationToken);
                 }
@@ -97,6 +102,8 @@ namespace OneIncTestApp.Services
             {
                 _logger.LogError(ex, $"An error occurred while processing job {job.Id}.");
             }
+
+            _logger.LogInformation("Job Processing Service has stopped.");
         }
     }
 }
