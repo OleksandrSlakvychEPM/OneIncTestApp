@@ -36,6 +36,7 @@ export class App implements OnInit, OnDestroy {
   private characterReceivedSubscription!: Subscription;
   private processingCompleteSubscription!: Subscription;
   private processingOutputLengthSubscription!: Subscription;
+  private processingCancelledSubscription!: Subscription;
 
   private fb = inject(FormBuilder);
   private processingService = inject(ProcessingService);
@@ -72,6 +73,15 @@ export class App implements OnInit, OnDestroy {
       },
       error: (err) => console.error('Error during processing completion:', err)
     });
+
+    this.processingCancelledSubscription = this.processingService.getProcessingCancelledObservable().subscribe({
+      next: () => {
+        console.log('Processing cancelled');
+        this.isProcessing = false;
+        this.progress = 0;
+      },
+      error: (err) => console.error('Error during processing completion:', err)
+    });
   }
 
   startProcessing(): void {
@@ -88,8 +98,6 @@ export class App implements OnInit, OnDestroy {
   }
 
   cancelProcessing(): void {
-    this.isProcessing = false;
-    this.progress = 0;
     this.processingService.cancelProcessing();
   }
 

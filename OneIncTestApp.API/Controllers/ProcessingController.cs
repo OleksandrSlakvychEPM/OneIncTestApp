@@ -31,6 +31,11 @@ namespace OneIncTestApp.Controllers
                 return BadRequest("Connection ID is required.");
             }
 
+            if (string.IsNullOrWhiteSpace(request.TabId))
+            {
+                return BadRequest("Tab ID is required.");
+            }
+
             try
             {
                 await _jobService.StartProcessing(input: request.Input, connectionId: request.ConnectionId, tabId: request.TabId);
@@ -51,6 +56,11 @@ namespace OneIncTestApp.Controllers
             if (string.IsNullOrWhiteSpace(request.ConnectionId))
             {
                 return BadRequest("Connection ID is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.TabId))
+            {
+                return BadRequest("Tab ID is required.");
             }
 
             var result = await _jobService.CancelProcessing(request.ConnectionId, request.TabId);

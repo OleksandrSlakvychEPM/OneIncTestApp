@@ -10,14 +10,15 @@ import { TabIdentifierService } from './tabidentifier.service';
 export class ProcessingService {
     private hubConnection!: signalR.HubConnection;
     private http = inject(HttpClient);
-    private apiUrl = 'http://localhost:8080/api/processing';
-    private hubUrl = 'http://localhost:8080/api/processingHub';
+    private apiUrl = 'https://localhost:7122/processing';
+    private hubUrl = 'https://localhost:7122/processingHub';
 
     private tabId: string;
 
     private characterReceivedSubject = new Subject<string>();
     private processingCompleteSubject = new Subject<void>();
     private processingOutputLengthSubject = new Subject<number>();
+    private processingCancelledSubject = new Subject<void>();
 
     totalCharacters = 0; // Total characters for progress calculation
 
@@ -64,7 +65,7 @@ export class ProcessingService {
 
         this.hubConnection.on('ProcessingCancelled', () => {
             console.log('Processing cancelled');
-            this.processingCompleteSubject.next();
+            this.processingCancelledSubject.next();
         });
     }
 
@@ -130,5 +131,9 @@ export class ProcessingService {
 
     getProcessingOutputLengthObservable(): Observable<number> {
         return this.processingOutputLengthSubject.asObservable();
+    }
+
+    getProcessingCancelledObservable(): Observable<void> {
+        return this.processingCancelledSubject.asObservable();
     }
 }
