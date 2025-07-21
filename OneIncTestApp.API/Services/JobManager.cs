@@ -1,6 +1,6 @@
-﻿using System.Collections.Concurrent;
-using OneIncTestApp.API.Services.Interfaces;
+﻿using OneIncTestApp.API.Services.Interfaces;
 using OneIncTestApp.Models;
+using System.Collections.Concurrent;
 
 namespace OneIncTestApp.Services
 {

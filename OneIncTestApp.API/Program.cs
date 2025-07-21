@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.RateLimiting;
-using OneIncTestApp.Hub;
-using OneIncTestApp.Services;
-using System.Threading.RateLimiting;
 using OneIncTestApp.API.Services.Interfaces;
+using OneIncTestApp.Hub;
 using OneIncTestApp.Infrastructure;
 using OneIncTestApp.Options;
+using OneIncTestApp.Services;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +46,9 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+builder.Services.AddHealthChecks()
+    .AddCheck<JobProcessingHealthCheck>("Job Processing Health Check");
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -54,6 +57,7 @@ var app = builder.Build();
 
 app.UseCors();
 
+app.MapHealthChecks("/health");
 app.MapHub<ProcessingHub>("/processingHub");
 
 if (app.Environment.IsDevelopment())

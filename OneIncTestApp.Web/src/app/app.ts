@@ -111,6 +111,9 @@ export class App implements OnInit, OnDestroy {
     if (this.processingOutputLengthSubscription) {
       this.processingOutputLengthSubscription.unsubscribe();
     }
+    if (this.processingCancelledSubscription) {
+      this.processingCancelledSubscription.unsubscribe();
+    }
     this.processingService.stopConnection();
   }
 }
