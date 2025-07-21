@@ -1,4 +1,6 @@
-﻿using OneIncTestApp.Models;
+﻿using Microsoft.Extensions.Options;
+using OneIncTestApp.Models;
+using OneIncTestApp.Options;
 using System.Collections.Concurrent;
 
 namespace OneIncTestApp.Infrastructure
@@ -13,9 +15,11 @@ namespace OneIncTestApp.Infrastructure
 
     public class JobQueue : IJobQueue
     {
-        private readonly int _maxQueueSize = 1000;
+        private readonly JobQueueOptions _options;
         private readonly ConcurrentQueue<Job> _jobs = new();
         private readonly SemaphoreSlim _signal = new(0);
+
+        public JobQueue(IOptions<JobQueueOptions> options) => _options = options.Value;
 
         public void Enqueue(Job job)
         {
@@ -24,7 +28,7 @@ namespace OneIncTestApp.Infrastructure
                 throw new ArgumentNullException(nameof(job));
             }
 
-            if (_jobs.Count >= _maxQueueSize)
+            if (_jobs.Count >= _options.MaxQueueSize)
             {
                 throw new InvalidOperationException("Job queue is full.");
             }
