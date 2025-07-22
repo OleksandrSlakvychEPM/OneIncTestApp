@@ -17,9 +17,14 @@ namespace OneIncTestApp.Infrastructure
     {
         private readonly JobQueueOptions _options;
         private readonly ConcurrentQueue<Job> _jobs = new();
-        private readonly SemaphoreSlim _signal = new(0);
+        private readonly SemaphoreSlim _signal;
 
-        public JobQueue(IOptions<JobQueueOptions> options) => _options = options.Value;
+        public JobQueue(IOptions<JobQueueOptions> options)
+        {
+            _options = options.Value;
+
+            _signal = new SemaphoreSlim(_options.MaxQueueSize);
+        }
 
         public void Enqueue(Job job)
         {
@@ -34,12 +39,20 @@ namespace OneIncTestApp.Infrastructure
             }
 
             _jobs.Enqueue(job);
+
             _signal.Release();
         }
 
         public bool TryDequeue(out Job? job)
         {
-            return _jobs.TryDequeue(out job);
+            var dequeued = _jobs.TryDequeue(out job);
+
+            if (dequeued)
+            {
+                _signal.Wait();
+            }
+
+            return dequeued;
         }
 
         public async Task WaitForJobAsync(CancellationToken cancellationToken)
